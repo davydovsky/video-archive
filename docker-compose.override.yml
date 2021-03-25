@@ -1,0 +1,13 @@
+version: "3.6"
+services:
+  web:
+    ports:
+      # Only bind ports directly in development:
+      - "8000:8000"
+    volumes:
+      # Only mount source code in development:
+      - .:/code
+  celery-workers:
+    volumes:
+      # Only mount source code in development:
+      - .:/code
