@@ -1,0 +1,37 @@
+{% extends 'video_archive/base.html' %}
+
+{% load static %}
+{% load crispy_forms_tags %}
+{% load bootstrap_pagination %}
+
+{% block content %}
+    <div class="d-flex flex-column">
+        <div class="p-2 va-container">
+            <form method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+                {{ form|crispy }}
+                {{ video_file_form.as_p }}
+                <button name="video_file" type="submit" class="btn btn-primary">Upload via file</button>
+            </form>
+        </div>
+        <div class="p-2 va-container">
+            <form method="post" enctype="multipart/form-data">
+                {% csrf_token %}
+                {{ form|crispy }}
+                {{ video_url_form.as_p }}
+                <button name="video_link_submit" type="submit" class="btn btn-primary">Upload via URL</button>
+            </form>
+        </div>
+        {% for video in videos_list %}
+            <div class="p-2 va-container va-video-container">
+                <video width="640" height="360" poster="{% if video.preview %}{{ video.preview.url }}{% else %}{% static 'video_archive/images/preview.png' %}{% endif %}" controls>
+                    {% for source in video.format_set.complete.all %}
+                        <source src="{{ source.file.url }}" type="video/{{ source.format }}"> </source>
+                    {% endfor %}
+                    <p>Your browser cannot play the provided video file.</p>
+                </video>
+            </div>
+        {% endfor %}
+        {% bootstrap_paginate videos_list %}
+    </div>
+{% endblock %}
