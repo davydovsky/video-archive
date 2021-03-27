@@ -12,13 +12,7 @@ from project.settings.components import config
 
 DEBUG = False
 
-ALLOWED_HOSTS = [
-    # TODO: check production hosts
-    config('DOMAIN_NAME'),
-
-    # We need this value for `healthcheck` to work:
-    'localhost',
-]
+ALLOWED_HOSTS = ['*']
 
 
 # Staticfiles
@@ -56,20 +50,3 @@ AUTH_PASSWORD_VALIDATORS = [
     {'NAME': '{0}.NumericPasswordValidator'.format(_PASS)},
 ]
 
-
-# Security
-# https://docs.djangoproject.com/en/2.2/topics/security/
-
-SECURE_HSTS_SECONDS = 31536000  # the same as Caddy has
-SECURE_HSTS_INCLUDE_SUBDOMAINS = True
-SECURE_HSTS_PRELOAD = True
-
-SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
-SECURE_SSL_REDIRECT = True
-SECURE_REDIRECT_EXEMPT = [
-    # This is required for healthcheck to work:
-    '^health/',
-]
-
-SESSION_COOKIE_SECURE = True
-CSRF_COOKIE_SECURE = True
