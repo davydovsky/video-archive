@@ -10,14 +10,21 @@ db_ready () {
   dockerize -wait 'tcp://db:3306' -timeout 5s
 }
 
-# We need this line to make sure that this container is started
-# after the one with Database:
+rabbitmq_ready () {
+  # Check that rabbitmq is up and running on port `15672`:
+  dockerize -wait 'http://rabbitmq:15672' -timeout 5s
+}
+
 until db_ready; do
   >&2 echo 'Database is unavailable - sleeping'
 done
-
-# It is also possible to wait for other services as well: redis, elastic, mongo
 >&2 echo 'Database is up - continuing...'
+
+until rabbitmq_ready; do
+  >&2 echo 'RabbitMQ is unavailable - sleeping'
+done
+>&2 echo 'RabbitMQ is up - continuing...'
+
 
 # Evaluating passed command (do not touch):
 # shellcheck disable=SC2086

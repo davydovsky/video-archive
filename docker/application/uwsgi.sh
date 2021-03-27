@@ -15,10 +15,12 @@ export DJANGO_ENV
 python /code/manage.py migrate --noinput
 python /code/manage.py collectstatic --noinput
 python /code/manage.py compilemessages
+#python /code/manage.py createsuperuser --noinput 2>/dev/null
 
 /usr/local/bin/uwsgi --master \
-  --wsgi-file=project.wsgi \
+  --wsgi-file=/code/project/wsgi.py \
   --threads=2 \
-  --processes 4 \
-  --http='0.0.0.0:8000'  \
-  --chdir='/code'
+  --processes=1 \
+  --socket=0.0.0.0:8000  \
+  --chdir=/code \
+  --http-timeout=180

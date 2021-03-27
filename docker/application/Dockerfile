@@ -66,8 +66,9 @@ COPY ./docker/application/entrypoint.sh /docker-entrypoint.sh
 RUN chmod +x '/docker-entrypoint.sh' \
   && groupadd -r web && useradd -d /code -r -g web web \
   && chown web:web -R /code \
-  && mkdir -p /var/www/django/static /var/www/django/media \
-  && chown web:web /var/www/django/static /var/www/django/media
+  && mkdir -p /var/www/video_archive/static /var/www/video_archive/media \
+  && chown web:web /var/www/video_archive/static /var/www/video_archive/media \
+  && chmod -R o+r /var/www/video_archive/static /var/www/video_archive/media
 
 # Copy only requirements, to cache them in docker layer
 COPY --chown=web:web ./poetry.lock ./pyproject.toml /code/

@@ -1,54 +1,97 @@
----
-
-# This compose-file is production only. So, it should not be called directly.
-#
-# Instead, it should be a part of your deploy strategy.
-# This setup is supposed to be used with `docker-swarm`.
-# See `./docs/pages/template/production.rst` docs.
-
 version: "3.6"
+
+x-system-defaults: &system-default
+  networks:
+    - proxynet
+  restart: always
+  env_file: ./config/.env
+
+x-web-defaults: &web-defaults
+  <<: *system-default
+  build:
+    target: production_build
+    args:
+      DJANGO_ENV: production
+  volumes:
+    - django-media:/var/www/video_archive/media
+    - django-static:/var/www/video_archive/static
+    - django-locale:/code/locale
+  depends_on:
+    - db
+    - rabbitmq
+  environment:
+    DJANGO_DATABASE_HOST: db
+    RABBITMQ_HOST: rabbitmq
+
 services:
-  caddy:
-    image: "caddy:2.2.1"
-    restart: unless-stopped
-    env_file: ./config/.env
+  db:
+    <<: *system-default
+    image: "davydovsky/video-archive:db-latest"
     volumes:
-      - ./docker/caddy/Caddyfile:/etc/caddy/Caddyfile  # configuration
-      - caddy-config:/config  # configuration autosaves
-      - caddy-data:/data  # saving certificates
-      - django-static:/var/www/django/static  # serving django's statics
-      - django-media:/var/www/django/media  # serving django's media
+      - mdbdata:/var/lib/mysql
     ports:
-      - "80:80"
-      - "443:443"
-    depends_on:
-      - web
-    networks:
-      - proxynet
+      - "3306:3306"
+
+  rabbitmq:
+    <<: *system-default
+    image: "davydovsky/video-archive:rabbitmq-latest"
+    volumes:
+      - rabbitmqdata:/var/lib/rabbitmq
+    ports:
+      - "15672:15672"
+      - "5672:5672"
+    labels:
+      kompose.service.type: nodeport
+      kompose.service.expose: "true"
 
   web:
-    <<: &web
-      # Image for production:
-      image: "registry.gitlab.com/wemake.services/test-project:latest"
-      build:
-        target: production_build
-        args:
-          DJANGO_ENV: production
-
-      restart: unless-stopped
-      volumes:
-        - django-media:/var/www/django/media  # since in dev it is app's folder
-
-    command: sh ./docker/application/uwsgi.sh
-    networks:
-      - proxynet
+    <<: *web-defaults
+    image: "davydovsky/video-archive:web-latest"
+    command: ./docker/application/uwsgi.sh
     expose:
       - 8000
+    healthcheck:
+      test: |
+        /usr/bin/test $$(
+          /usr/bin/curl --fail http://127.0.0.1:8000/health/?format=json
+          --write-out "%{http_code}" --silent --output /dev/null
+        ) -eq 200
+      interval: 60s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  celery-workers:
+    <<: *web-defaults
+    image: "davydovsky/video-archive:web-latest"
+    command: ./docker/application/celery/worker.sh
+    healthcheck:
+      test: ./docker/application/celery/worker_helthcheck.sh
+      interval: 60s
+      timeout: 20s
+      retries: 3
+
+  nginx:
+    <<: *system-default
+    image: "davydovsky/video-archive:nginx-latest"
+    volumes:
+      - django-media:/var/www/video_archive/media
+      - django-static:/var/www/video_archive/static
+      - django-locale:/code/locale
+    ports:
+      - "80:80"
+    depends_on:
+      - web
+    labels:
+      kompose.service.type: nodeport
+      kompose.service.expose: "true"
 
 networks:
   proxynet:
 
 volumes:
+  mdbdata:
+  rabbitmqdata:
   django-media:
-  caddy-config:
-  caddy-data:
+  django-static:
+  django-locale:
