@@ -1,0 +1,17 @@
+apiVersion: v1
+data:
+  DJANGO_DATABASE_PORT: "3306"
+  DJANGO_SUPERUSER_EMAIL: admin@example.com
+  DJANGO_SUPERUSER_USERNAME: admin
+  DOMAIN_NAME: myapp.com
+  MYSQL_DATABASE: video_archive
+  MYSQL_USER: video_archive
+  RABBITMQ_LOGIN: admin
+  RABBITMQ_MANAGEMENT_PORT: "15672"
+  RABBITMQ_PORT: "5672"
+kind: ConfigMap
+metadata:
+  creationTimestamp: null
+  labels:
+    io.kompose.service: celery-workers-config--env
+  name: config--env
