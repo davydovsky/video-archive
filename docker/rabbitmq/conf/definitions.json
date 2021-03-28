@@ -1,0 +1,66 @@
+{
+  "users": [
+    {
+      "name": "admin",
+      "password_hash": "vzjpV4MWGsoEN/kGAAPZ/KpuhUwP+jVczNQrNBR0ZVG1pYB3",
+      "hashing_algorithm": "rabbit_password_hashing_sha256",
+      "tags": "administrator"
+    }
+  ],
+  "vhosts": [
+    {
+      "name": "video-archive"
+    }
+  ],
+  "permissions": [
+    {
+      "user": "admin",
+      "vhost": "video-archive",
+      "configure": ".*",
+      "write": ".*",
+      "read": ".*"
+    }
+  ],
+  "topic_permissions": [
+    {
+      "user": "admin",
+      "vhost": "/",
+      "exchange": "",
+      "write": ".*",
+      "read": ".*"
+    },
+    {
+      "user": "admin",
+      "vhost": "video-archive",
+      "exchange": "",
+      "write": ".*",
+      "read": ".*"
+    }
+  ],
+  "policies": [
+    {
+      "vhost": "/",
+      "name": "HA",
+      "pattern": ".*",
+      "apply-to": "all",
+      "definition": {
+        "ha-mode": "all",
+        "ha-sync-batch-size": 5,
+        "ha-sync-mode": "automatic"
+      },
+      "priority": 0
+    },
+    {
+      "vhost": "video-archive",
+      "name": "HA",
+      "pattern": ".*",
+      "apply-to": "all",
+      "definition": {
+        "ha-mode": "all",
+        "ha-sync-batch-size": 5,
+        "ha-sync-mode": "automatic"
+      },
+      "priority": 0
+    }
+  ]
+}

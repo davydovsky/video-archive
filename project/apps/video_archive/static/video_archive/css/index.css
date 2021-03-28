@@ -1,0 +1,46 @@
+html, body {
+    height: 100%;
+    min-height: 100%;
+}
+
+html {
+  display: block;
+  -webkit-text-size-adjust: 100%;
+}
+
+.header {
+  overflow: hidden;
+  background-color: #eeeeee;
+  padding: 20px 10px;
+  height: 100px;
+}
+
+body {
+  background-color: #fafafa;
+}
+
+.va-center-container{
+  width: 660px;
+  margin: auto;
+  left: 1%;
+  right: 1%;
+  position: absolute;
+}
+
+.va-item-container{
+  background: #fff;
+  border: 1px solid rgba(219,219,219,1);
+  border-radius: 3px;
+  box-shadow: 0 0 5px rgba(0,0,0,0.1);
+  margin-top: 5px;
+  margin-bottom: 5px;
+}
+
+.va-form-container{
+  width: 50%;
+  margin-bottom: 10px;
+}
+
+.va-video-container {
+  padding: 10px;
+}

@@ -1,0 +1,79 @@
+version: "3.6"
+
+x-system-defaults: &system-default
+  networks:
+    - webnet
+  restart: always
+  env_file: ./config/.env
+
+x-web-defaults: &web-defaults
+  <<: *system-default
+  image: "video_archive:dev"
+  build:
+    target: development_build
+    context: .
+    dockerfile: ./docker/application/Dockerfile
+    args:
+      DJANGO_ENV: development
+    cache_from:
+      - "video_archive:dev"
+      - "video_archive:latest"
+      - "*"
+  volumes:
+    - django-static:/var/www/django/static
+  depends_on:
+    - db
+    - rabbitmq
+  environment:
+    DJANGO_DATABASE_HOST: db
+    RABBITMQ_HOST: rabbitmq
+
+services:
+  db:
+    <<: *system-default
+    build: ./docker/db
+    volumes:
+      - mdbdata:/var/lib/mysql
+    ports:
+      - "3301:3306"
+
+  rabbitmq:
+    <<: *system-default
+    build: ./docker/rabbitmq
+    volumes:
+      - rabbitmqdata:/var/lib/rabbitmq
+    ports:
+      - "15672:15672"
+      - "5672:5672"
+
+  web:
+    <<: *web-defaults
+    command: python -Wi manage.py runserver 0.0.0.0:8000
+    healthcheck:
+      test: |
+        /usr/bin/test $$(
+          /usr/bin/curl --fail http://127.0.0.1:8000/health/?format=json
+          --write-out "%{http_code}" --silent --output /dev/null
+        ) -eq 200
+      interval: 60s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  celery-workers:
+    <<: *web-defaults
+    command: python -Wi -m celery -A project worker --loglevel=INFO --time-limit=43200 --concurrency=8
+    healthcheck:
+      test: python -Wi -m celery inspect ping -A project
+      interval: 60s
+      timeout: 20s
+      retries: 3
+
+
+networks:
+  webnet:
+
+volumes:
+  mdbdata:
+  rabbitmqdata:
+  django-static:

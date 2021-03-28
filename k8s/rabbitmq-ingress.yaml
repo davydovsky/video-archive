@@ -1,0 +1,21 @@
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  annotations:
+    kompose.cmd: kompose convert -f docker-compose.prod.yml
+    kompose.service.expose: "true"
+    kompose.service.type: nodeport
+    kompose.version: 1.22.0 (955b78124)
+  creationTimestamp: null
+  labels:
+    io.kompose.service: rabbitmq
+  name: rabbitmq
+spec:
+  rules:
+    - http:
+        paths:
+          - backend:
+              serviceName: rabbitmq
+              servicePort: 15672
+status:
+  loadBalancer: {}

@@ -1,0 +1,97 @@
+version: "3.6"
+
+x-system-defaults: &system-default
+  networks:
+    - proxynet
+  restart: always
+  env_file: ./config/.env
+
+x-web-defaults: &web-defaults
+  <<: *system-default
+  build:
+    target: production_build
+    args:
+      DJANGO_ENV: production
+  volumes:
+    - django-media:/var/www/video_archive/media
+    - django-static:/var/www/video_archive/static
+    - django-locale:/code/locale
+  depends_on:
+    - db
+    - rabbitmq
+  environment:
+    DJANGO_DATABASE_HOST: db
+    RABBITMQ_HOST: rabbitmq
+
+services:
+  db:
+    <<: *system-default
+    image: "davydovsky/video-archive:db-latest"
+    volumes:
+      - mdbdata:/var/lib/mysql
+    ports:
+      - "3306:3306"
+
+  rabbitmq:
+    <<: *system-default
+    image: "davydovsky/video-archive:rabbitmq-latest"
+    volumes:
+      - rabbitmqdata:/var/lib/rabbitmq
+    ports:
+      - "15672:15672"
+      - "5672:5672"
+    labels:
+      kompose.service.type: nodeport
+      kompose.service.expose: "true"
+
+  web:
+    <<: *web-defaults
+    image: "davydovsky/video-archive:web-latest"
+    command: ./docker/application/uwsgi.sh
+    expose:
+      - 8000
+    healthcheck:
+      test: |
+        /usr/bin/test $$(
+          /usr/bin/curl --fail http://127.0.0.1:8000/health/?format=json
+          --write-out "%{http_code}" --silent --output /dev/null
+        ) -eq 200
+      interval: 60s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  celery-workers:
+    <<: *web-defaults
+    image: "davydovsky/video-archive:web-latest"
+    command: ./docker/application/celery/worker.sh
+    healthcheck:
+      test: ./docker/application/celery/worker_helthcheck.sh
+      interval: 60s
+      timeout: 20s
+      retries: 3
+
+  nginx:
+    <<: *system-default
+    image: "davydovsky/video-archive:nginx-latest"
+    volumes:
+      - django-media:/var/www/video_archive/media
+      - django-static:/var/www/video_archive/static
+      - django-locale:/code/locale
+    ports:
+      - "80:80"
+    depends_on:
+      - web
+    labels:
+      kompose.service.type: nodeport
+      kompose.service.expose: "true"
+
+networks:
+  proxynet:
+
+volumes:
+  mdbdata:
+  rabbitmqdata:
+  django-media:
+  django-static:
+  django-locale:
