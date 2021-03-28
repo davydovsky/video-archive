@@ -2,5 +2,6 @@ from django.apps import AppConfig
 
 
 class VideoArchiveConfig(AppConfig):
-    name = 'project.apps.video_archive'
+    """Video Archive django app config."""
 
+    name = 'project.apps.video_archive'

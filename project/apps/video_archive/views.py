@@ -1,5 +1,6 @@
-from typing import List
+from typing import List, Optional
 
+from django import forms
 from django.core.paginator import EmptyPage, Page, PageNotAnInteger, Paginator
 from django.http import HttpRequest, HttpResponse
 from django.shortcuts import redirect, render
@@ -35,28 +36,16 @@ class VideosListView(View):
         """Handle forms data."""
         context = {}
 
-        if 'video_file' in request.POST:
-            video_file_form = VideoFileForm(request.POST, request.FILES)
-
-            if video_file_form.is_valid():
-                video_file = request.FILES.get('video_file')
-                if video_file:
-                    video = Video(file=video_file)
-                    video.save()
+        if 'video_file' in request.FILES:
+            video_file_form = self._post_video_file(request)
+            if not video_file_form:
                 return redirect(reverse('video_archive:video-feed'))
-            else:
-                context['video_file_form'] = video_file_form
-
+            context['video_file_form'] = video_file_form
         elif 'video_link' in request.POST:
-            video_url_form = VideoURLForm(request.POST)
-
-            if video_url_form.is_valid():
-                video_link = request.POST.get('video_link')
-                if video_link:
-                    handle_file_via_url.delay(video_link)
+            video_url_form = self._post_video_url(request)
+            if not video_url_form:
                 return redirect(reverse('video_archive:video-feed'))
-            else:
-                context['comment_form'] = video_url_form
+            context['video_url_form'] = video_url_form
 
         return render(request, self.template_name, self.get_context_data(**context))
 
@@ -74,3 +63,28 @@ class VideosListView(View):
             videos_list = paginator.page(paginator.num_pages)
 
         return videos_list
+
+    def _post_video_file(self, request: HttpRequest) -> Optional[forms.Form]:
+        """Handle video file."""
+        video_file_form = VideoFileForm(request.POST, request.FILES)
+
+        if video_file_form.is_valid():
+            video_file = request.FILES.get('video_file')
+            if video_file:
+                video = Video(file=video_file)
+                video.save()
+            return None
+
+        return video_file_form
+
+    def _post_video_url(self, request: HttpRequest) -> Optional[forms.Form]:
+        """Handle video file."""
+        video_url_form = VideoURLForm(request.POST)
+
+        if video_url_form.is_valid():
+            video_link = request.POST.get('video_link')
+            if video_link:
+                handle_file_via_url.delay(video_link)
+            return None
+
+        return video_url_form

@@ -20,22 +20,27 @@ class Video(TimeStampedModel):
 
     format_set = GenericRelation(Format)
 
-    class Meta:
+    class Meta(object):
         verbose_name = _('Video')
         verbose_name_plural = _('Video')
 
     def __str__(self) -> str:
+        """Instance to string."""
         return f'{self.id}'
 
     def save(self, **kwargs) -> None:
+        """Save instance."""
+        super().full_clean()
         super().save(**kwargs)
-        transaction.on_commit(self._process_video_async)  # process video upon saving in database
+        transaction.on_commit(self.process_video_async)  # process video upon saving in database
 
-    def _process_video_async(self) -> None:
+    def process_video_async(self) -> None:
         """
         Process video using async worker.
+
          - create video preview
          - encode video in all supported formats
+
         :return: None
         """
         app_label = self._meta.app_label

@@ -5,25 +5,30 @@
 {% load bootstrap_pagination %}
 
 {% block content %}
-    <div class="d-flex flex-column">
-        <div class="p-2 va-container">
-            <form method="post" enctype="multipart/form-data">
-                {% csrf_token %}
-                {{ form|crispy }}
-                {{ video_file_form.as_p }}
-                <button name="video_file" type="submit" class="btn btn-primary">Upload via file</button>
-            </form>
+    <div class="d-flex flex-column va-center-container">
+        <div class="d-flex flex-row">
+            <div class="p-2 va-item-container va-form-container">
+                <form method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    {{ video_file_form | crispy }}
+                    {{ video_file_form.errors.name }}
+                    <button type="submit" class="btn btn-primary">Upload via file</button>
+                </form>
+            </div>
+            <div class="p-2 va-item-container va-form-container">
+                <form method="post" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    {{ video_url_form | crispy }}
+                    {{ video_url_form.errors.name }}
+                    <button type="submit" class="btn btn-primary">Upload via URL</button>
+                </form>
+            </div>
         </div>
-        <div class="p-2 va-container">
-            <form method="post" enctype="multipart/form-data">
-                {% csrf_token %}
-                {{ form|crispy }}
-                {{ video_url_form.as_p }}
-                <button name="video_link_submit" type="submit" class="btn btn-primary">Upload via URL</button>
-            </form>
-        </div>
+        {% if videos_list %}
+            {% bootstrap_paginate videos_list %}
+        {% endif %}
         {% for video in videos_list %}
-            <div class="p-2 va-container va-video-container">
+            <div class="p-2 va-item-container va-video-container">
                 <video width="640" height="360" poster="{% if video.preview %}{{ video.preview.url }}{% else %}{% static 'video_archive/images/preview.png' %}{% endif %}" controls>
                     {% for source in video.format_set.complete.all %}
                         <source src="{{ source.file.url }}" type="video/{{ source.format }}"> </source>
@@ -32,8 +37,5 @@
                 </video>
             </div>
         {% endfor %}
-        {% if videos_list %}
-            {% bootstrap_paginate videos_list %}
-        {% endif %}
     </div>
 {% endblock %}

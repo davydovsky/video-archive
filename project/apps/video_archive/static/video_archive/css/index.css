@@ -10,22 +10,35 @@ html {
 
 .header {
   overflow: hidden;
-  background-color: #d5d5d5;
+  background-color: #eeeeee;
   padding: 20px 10px;
+  height: 100px;
 }
 
 body {
   background-color: #fafafa;
 }
 
-.va-container{
+.va-center-container{
+  width: 660px;
+  margin: auto;
+  left: 1%;
+  right: 1%;
+  position: absolute;
+}
+
+.va-item-container{
   background: #fff;
   border: 1px solid rgba(219,219,219,1);
   border-radius: 3px;
+  box-shadow: 0 0 5px rgba(0,0,0,0.1);
   margin-top: 5px;
   margin-bottom: 5px;
-  width:fit-content;
-  height:fit-content;
+}
+
+.va-form-container{
+  width: 50%;
+  margin-bottom: 10px;
 }
 
 .va-video-container {
