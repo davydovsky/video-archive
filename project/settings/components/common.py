@@ -29,7 +29,6 @@ INSTALLED_APPS: Tuple[str, ...] = (
     'django_celery_results',
     'crispy_forms',
     'bootstrap_pagination',
-    'constrainedfilefield'
 )
 
 MIDDLEWARE: Tuple[str, ...] = (
