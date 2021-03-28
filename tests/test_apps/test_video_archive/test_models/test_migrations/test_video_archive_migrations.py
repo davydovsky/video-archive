@@ -1,7 +1,7 @@
 import pytest
 from django_test_migrations.migrator import Migrator
 
-from server.apps.main.urls import app_name
+from project.apps.video_archive.urls import app_name
 
 
 def test_initial0001(migrator: Migrator) -> None:
@@ -9,9 +9,9 @@ def test_initial0001(migrator: Migrator) -> None:
     old_state = migrator.apply_initial_migration((app_name, None))
     with pytest.raises(LookupError):
         # This model does not exist before this migration:
-        old_state.apps.get_model(app_name, 'BlogPost')
+        old_state.apps.get_model(app_name, 'Video')
 
     new_state = migrator.apply_tested_migration((app_name, '0001_initial'))
-    model = new_state.apps.get_model(app_name, 'BlogPost')
+    model = new_state.apps.get_model(app_name, 'Video')
 
-    assert model.objects.create(title='test', body='some body')
+    assert model.objects.create()

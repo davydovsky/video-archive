@@ -1,16 +1,20 @@
-from hypothesis import given
+from hypothesis import given, settings
 from hypothesis.extra import django
+from hypothesis.strategies import just
 
-from server.apps.main.models import BlogPost
+from project.apps.video_archive.models import Video
 
 
-class TestBlogPost(django.TestCase):
+class TestVideo(django.TestCase):
     """This is a property-based test that ensures model correctness."""
 
-    @given(django.from_model(BlogPost))
-    def test_model_properties(self, instance: BlogPost) -> None:
+    @settings(deadline=1000)
+    @given(django.from_model(Video, width=just(None), height=just(None),
+                             duration=just(None), preview=just('')))
+    def test_model_properties(self, instance: Video) -> None:
         """Tests that instance can be saved and has correct representation."""
         instance.save()
 
         assert instance.id > 0
-        assert len(str(instance)) <= 20
+        assert instance.__str__() == str(instance)
+        assert instance.process_video_async() is None
