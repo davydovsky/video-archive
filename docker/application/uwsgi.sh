@@ -15,7 +15,7 @@ export DJANGO_ENV
 python /code/manage.py migrate --noinput
 python /code/manage.py collectstatic --noinput
 python /code/manage.py compilemessages
-#python /code/manage.py createsuperuser --noinput 2>/dev/null
+python /code/manage.py initadmin
 
 /usr/local/bin/uwsgi --master \
   --wsgi-file=/code/project/wsgi.py \
